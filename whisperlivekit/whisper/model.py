@@ -132,6 +132,8 @@ class MultiHeadAttention(nn.Module):
         else:
             qk = (q * scale) @ (k * scale).transpose(-1, -2)
             if mask is not None:
+                if mask.shape[0] < n_ctx:
+                    mask = torch.empty(n_ctx, n_ctx, device=q.device).fill_(-np.inf).triu_(1)
                 qk = qk + mask[:n_ctx, :n_ctx]
             qk = qk.float()
 
