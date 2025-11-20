@@ -237,6 +237,13 @@ class TextDecoder(nn.Module):
             the encoded audio features to be attended on
         """
         offset = next(iter(kv_cache.values())).shape[1] if kv_cache else 0
+        
+        # Defensive truncation: ensure we don't exceed the context window
+        max_len = self.positional_embedding.shape[0] - offset
+        if x.shape[-1] > max_len:
+            print(f"WARNING: TextDecoder input truncated from {x.shape[-1]} to {max_len} tokens due to context limit.")
+            x = x[:, :max_len]
+            
         x = (
             self.token_embedding(x)
             + self.positional_embedding[offset : offset + x.shape[-1]]
